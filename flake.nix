@@ -45,10 +45,10 @@
       });
     in {
     inherit packages;
-    nixosModules.default = forAllSystems (pkgs: rec {
+    nixosModules = forAllSystems (pkgs: rec {
       default = import ./service.nix { inherit packages self; };
     });
-    homeManagerModules.default = forAllSystems (pkgs: rec {
+    homeManagerModules = forAllSystems (pkgs: rec {
       default = import ./service.nix { inherit packages self; };
     });
   };
