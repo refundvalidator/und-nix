@@ -2,7 +2,7 @@
 
 buildGoModule rec {
   inherit version;
-  pname = "und-${version}";
+  pname = "und";
   name = pname;
 
   src = pkgs.fetchFromGitHub {
@@ -18,6 +18,6 @@ buildGoModule rec {
   -X github.com/cosmos/cosmos-sdk/version.Version=${version} \
   -X github.com/cosmos/cosmos-sdk/version.Name=UndMainchain
   -X github.com/cosmos/cosmos-sdk/version.AppName=und" \
-  -o $out/bin/und-${version} ./cmd/und
+  -o $out/bin/und ./cmd/und
   '';
 }

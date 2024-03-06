@@ -2,7 +2,7 @@
 
 buildGoModule rec {
   inherit version;
-  pname = "cosmovisor-${version}";
+  pname = "cosmovisor";
   name = pname;
 
   src = pkgs.fetchFromGitHub {
@@ -17,6 +17,6 @@ buildGoModule rec {
 
   buildPhase = ''
   mkdir -p $out/bin
-  go build -o $out/bin/cosmovisor-${version} .
+  go build -o $out/bin/cosmovisor .
   '';
 }

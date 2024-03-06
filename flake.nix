@@ -13,11 +13,18 @@
           function (import nixpkgs {
             inherit system;
           }));
+      packages = forAllSystems (pkgs: rec {
+        und = pkgs.callPackage ./und.nix { version = "1.5.1"; } ;
+        cosmovisor = pkgs.callPackage ./cosmovisor.nix { } ;
+        default = und;
+      });
     in {
-    packages = forAllSystems (pkgs: rec {
-      und = pkgs.callPackage ./und.nix { version = "1.5.1"; } ;
-      cosmovisor = pkgs.callPackage ./cosmovisor.nix { } ;
-      default = und;
+    inherit packages;
+    nixosModules.default = forAllSystems (pkgs: rec {
+      default = import ./service.nix { inherit (packages.${pkgs.system}) cosmovisor und; inherit self; };
+    });
+    homeManagerModules.default = forAllSystems (pkgs: rec {
+      default = import ./service.nix { inherit (packages.${pkgs.system}) cosmovisor und; inherit self; };
     });
   };
 }
