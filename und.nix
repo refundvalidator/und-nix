@@ -1,7 +1,7 @@
-{ pkgs, lib, buildGoModule, fetchFromGithub, version ? "1.8.2" }:
+{ pkgs, lib, buildGoModule, fetchFromGithub, version, vendorHash, hash }:
 
 buildGoModule rec {
-  inherit version;
+  inherit version vendorHash;
   pname = "und";
   name = pname;
 
@@ -9,9 +9,8 @@ buildGoModule rec {
     owner = "unification-com";
     repo = "mainchain";
     rev = "v${version}";
-    hash = "sha256-0JRDIzVaB+869u1VKPTgcobtvCcW8pPh3P7zoqTVcy8=";
+    inherit hash;
   };
-  vendorHash = "sha256-rtpc3FhLXJ4EcIHay7ukWW3T3MpQsrAxGi8KUU8O9+E=";
   buildPhase = ''
   go build \
   -ldflags=" \
