@@ -1,15 +1,23 @@
 {
-  description = "A very basic flake";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-  };
-
-  outputs = { self, nixpkgs }: {
-
-    packages.x86_64-linux.hello = nixpkgs.legacyPackages.x86_64-linux.hello;
-
-    packages.x86_64-linux.default = self.packages.x86_64-linux.hello;
-
+  outputs = { self, nixpkgs }: 
+    let
+      forAllSystems = function:
+        nixpkgs.lib.genAttrs [
+          "x86_64-linux"
+          "x86_64-darwin"
+          "aarch64-linux"
+          "aarch64-darwin"
+        ] (system:
+          function (import nixpkgs {
+            inherit system;
+          }));
+    in {
+    packages = forAllSystems (pkgs: rec {
+      und = pkgs.callPackage ./und.nix { version = "1.5.1"; } ;
+      cosmovisor = pkgs.callPackage ./cosmovisor.nix { } ;
+      default = und;
+    });
   };
 }
