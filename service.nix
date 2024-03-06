@@ -1,4 +1,4 @@
-{ lib, pkgs, config, und, cosmovisor, self, ... }:
+{ lib, pkgs, config, und, cosmovisor, packages, self, ... }:
 with lib;                      
 let
   cfg = config.services.und;
@@ -39,23 +39,18 @@ in {
       default = false;
     };
     config = mkOption {
-      type = types.attrsOf config-toml;
+      inherit (settingsFormat) type;
       default = initConfig;
     };
     app = mkOption {
-      type = types.attrsof app-toml; 
+      inherit (settingsFormat) type;
       default = initApp;
     };
   };
-
-  # systemd.tmpfiles.rules =  mkIf (if cfg.daemonHome == "" then false else true) [
-  #   "d ${cfg.daemonHome} 0777 root root -" #The - disables automatic cleanup, so the file wont be removed after a period
-  #   "d ${cfg.daemonHome}/config 0777 root root -" #The - disables automatic cleanup, so the file wont be removed after a period
-  #   "d ${cfg.daemonHome}/config/app.toml 0777 root root -" #The - disables automatic cleanup, so the file wont be removed after a period
-  # ];
-  environment.etc."config.toml".source = configFile; 
+  environment.etc."${cfg.daemonHome}/config/config.toml".source = configFile; 
+  environment.etc."${cfg.daemonHome}/config/app.toml".source = appFile; 
   config = mkIf cfg.enable {
-    systemd.services.und = {
+    systemd.user.services.und = {
       description="Unification Mainchain Node";
       wantedBy = [ "default.target" ];
       serviceConfig = {
@@ -69,6 +64,14 @@ in {
           "UNSAFE_SKIP_BACKUP=${cfg.unsafeSkipBackup}"
         ];
         LimitNOFILE=4096;
+        ExecStartPre = ''
+          if ! test -d "${cfg.daemonHome}; then
+            ${packages.und}/bin/und init --home ${cfg.daemonHome};
+          fi
+          if ! test -d "${cfg.daemonHome}/cosmovisor/current"; then
+            ln -s ${packages.und}/bin/und ${cfg.daemonHome}/cosmovisor/current
+          fi
+        '';
         ExecStart = "${cosmovisor}/bin/cosmovisor run start --home ${cfg.daemonHome}";
       };
     };
