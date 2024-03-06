@@ -2,8 +2,11 @@
 with lib;                      
 let
   cfg = config.services.und;
-  config-toml = (builtins.fromTOML (builtins.readFile "${self}/config.toml"));
-  app-toml = (builtins.fromTOML (builtins.readFile "${self}/app.toml"));
+  settingsFormat = pkgs.formats.toml { };
+  initConfig = modules.importTOML "${self}/configs/config.toml";
+  initApp = modules.importTOML "${self}/configs/app.toml";
+  configFile = format.generate "config.toml" cfg.config;
+  appFile = format.generate "app.toml" cfg.app;
 in {
   options.services.und = {
     enable = mkEnableOption "Enable the UND service";
@@ -35,14 +38,14 @@ in {
       type = types.bool;
       default = false;
     };
-    # config = mkOption {
-    #   type = types.attrsOf config-toml;
-    #   default = config-toml;
-    # };
-    # app = mkOption {
-    #   type = types.attrsof app-toml; 
-    #   default = app-toml;
-    # };
+    config = mkOption {
+      type = types.attrsOf config-toml;
+      default = initConfig;
+    };
+    app = mkOption {
+      type = types.attrsof app-toml; 
+      default = initApp;
+    };
   };
 
   # systemd.tmpfiles.rules =  mkIf (if cfg.daemonHome == "" then false else true) [
@@ -50,7 +53,7 @@ in {
   #   "d ${cfg.daemonHome}/config 0777 root root -" #The - disables automatic cleanup, so the file wont be removed after a period
   #   "d ${cfg.daemonHome}/config/app.toml 0777 root root -" #The - disables automatic cleanup, so the file wont be removed after a period
   # ];
-  
+  environment.etc."config.toml".source = configFile; 
   config = mkIf cfg.enable {
     systemd.services.und = {
       description="Unification Mainchain Node";
